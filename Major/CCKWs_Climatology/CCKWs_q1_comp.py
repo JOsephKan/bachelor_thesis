@@ -4,9 +4,12 @@
 import numpy as np;
 import netCDF4 as nc;
 import pickle as pkl;
+import matplotlib
+
 from matplotlib import pyplot as plt;
 from matplotlib.colors import TwoSlopeNorm;
 
+matplotlib.use('Agg')  # or 'Qt5Agg'
 # %% Section 2
 # Load file
 path: str = "/work/b11209013/2024_Research/MPAS/merged_data/CNTL/";
@@ -83,10 +86,10 @@ plt.yscale("log");
 plt.xticks(np.linspace(-3, 3, 7), np.linspace(-3, 3, 7, dtype=int), fontsize=12);
 plt.yticks(np.linspace(100, 1000, 10), np.linspace(100, 1000, 10, dtype=int), fontsize=12);
 plt.text(3.5, 350, "Level [hPa]", va="center", ha="center", rotation=90, fontsize=14);
-plt.text(-4, 350, r"$Q_1$ [K/day]", va="center", ha="center", rotation=90, fontsize=14);
+plt.text(-3.8, 350, r"$Q_1$ [K/day]", va="center", ha="center", rotation=90, fontsize=14);
 plt.text(1.5, 1300, "Day After", va="center", ha="center", fontsize=14);
 plt.text(-1.5, 1300, "Day Before", va="center", ha="center", fontsize=14);
-plt.text(3, 95, r"CNTL CCKWs Composite (Shading: $Q_1$)", va="bottom", ha="left", fontsize=14);
+plt.text(3, 95, r"Shading: $Q_1$ [K/day]"+"\nContour: Temperature [K]; $q_v$ [g/kg]", va="bottom", ha="left", fontsize=14);
 plt.xlim(-3, 3);
 plt.ylim(100, 1000);
 plt.gca().invert_xaxis();

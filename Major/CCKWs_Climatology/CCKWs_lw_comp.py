@@ -75,8 +75,10 @@ sw_daily = np.array([
 # Plot
 plt.rcParams["font.family"] = "serif";
 plt.rcParams["mathtext.fontset"] = "cm";
+plt.rcParams["xtick.labelsize"] = 12;
+plt.rcParams["ytick.labelsize"] = 12;
 
-fig, ax = plt.subplots(2, 1, figsize=(16, 20), sharex=True);
+fig, ax = plt.subplots(2, 1, figsize=(16, 12), sharex=True);
 lw_cf = ax[0].pcolormesh(
     np.linspace(-2.5, 2.5, 6), dims["lev"],
     lw_daily,
@@ -88,13 +90,13 @@ t_cf = ax[0].contour(
     data_sel["t"],
     colors="k", levels=np.arange(-2.5, 2.6, 0.5),
 );
-plt.subplots_adjust(left=0.1, bottom=0.15, right=1.03, top=0.9);
+plt.subplots_adjust(left=0.1, bottom=0.1, right=1.03, top=0.92);
 ax[0].set_yscale("log");
 ax[0].set_xticks(np.linspace(-3, 3, 7), np.linspace(-3, 3, 7, dtype=int), fontsize=12);
 ax[0].set_yticks(np.linspace(100, 1000, 10), np.linspace(100, 1000, 10, dtype=int), fontsize=12);
-ax[0].text(3.5, 350, "Level [hPa]", va="center", ha="center", rotation=90, fontsize=14);
-ax[0].text(-4, 350, "LW Heating [K/day]", va="center", ha="center", rotation=90, fontsize=14);
-ax[0].text(3, 95, "(a) CNTL CCKWs Composite (Shading: LW)", va="bottom", ha="left", fontsize=14);
+ax[0].text(3.4, 350, "Level [hPa]", va="center", ha="center", rotation=90, fontsize=16);
+ax[0].text(-4, 350, "LW Heating [K/day]", va="center", ha="center", rotation=90, fontsize=16);
+ax[0].text(3, 95, "(a) CNTL CCKWs Composite (Shading: LW)", va="bottom", ha="left", fontsize=16);
 ax[0].set_xlim(3, -3);
 ax[0].set_ylim(1000, 100);
 plt.colorbar(lw_cf);
@@ -114,11 +116,11 @@ t_cf = ax[1].contour(
 ax[1].set_yscale("log");
 ax[1].set_xticks(np.linspace(-3, 3, 7), np.linspace(-3, 3, 7, dtype=int), fontsize=12);
 ax[1].set_yticks(np.linspace(100, 1000, 10), np.linspace(100, 1000, 10, dtype=int), fontsize=12);
-ax[1].text(3.5, 350, "Level [hPa]", va="center", ha="center", rotation=90, fontsize=14);
-ax[1].text(-4, 350, "SW Heating [K/day]", va="center", ha="center", rotation=90, fontsize=14);
-ax[1].text(1.5, 1300, "Day After", va="center", ha="center", fontsize=14);
-ax[1].text(-1.5, 1300, "Day Before", va="center", ha="center", fontsize=14);
-ax[1].text(3, 95, "(b) CNTL CCKWs Composite (Shading: SW)", va="bottom", ha="left", fontsize=14);
+ax[1].text(3.4, 350, "Level [hPa]", va="center", ha="center", rotation=90, fontsize=16);
+ax[1].text(-4, 350, "SW Heating [K/day]", va="center", ha="center", rotation=90, fontsize=16);
+ax[1].text(1.5, 1300, "Day After", va="center", ha="center", fontsize=16);
+ax[1].text(-1.5, 1300, "Day Before", va="center", ha="center", fontsize=16);
+ax[1].text(3, 95, "(b) CNTL CCKWs Composite (Shading: SW)", va="bottom", ha="left", fontsize=16);
 ax[1].set_xlim(-3, 3);
 ax[1].set_ylim(100, 1000);
 plt.gca().invert_xaxis();
