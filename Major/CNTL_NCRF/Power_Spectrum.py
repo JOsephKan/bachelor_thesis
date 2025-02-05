@@ -45,22 +45,22 @@ data_rm_cli: dict[str, np.ndarray] = dict(
 
 # # Construct symmetric data
 data_sym: dict[str, np.ndarray] = dict(
-    (exp, ((data_rm_cli[exp] + np.flip(data_rm_cli[exp], axis=2)) / 2).sum(axis=2))
+    (exp, ((data_rm_cli[exp] + np.flip(data_rm_cli[exp], axis=2)) / 2))
     for exp in data_rm_cli.keys()
 );
 
 data_asy: dict[str, np.ndarray] = dict(
-    (exp, ((data_rm_cli[exp] - np.flip(data_rm_cli[exp], axis=2)) / 2).sum(axis=2))
+    (exp, ((data_rm_cli[exp] - np.flip(data_rm_cli[exp], axis=2)) / 2))
     for exp in data_rm_cli.keys()
 );
 
 # # Windowing
 lsec: int = 120;
-hanning: np.ndarray = np.hanning(lsec)[:, None, None];
+hanning: np.ndarray = np.hanning(lsec)[:, None, None, None];
 
 sym_window: dict[str, np.ndarray] = dict(
     (exp, np.array([
-        data_sym[exp][i*60:i*60+lsec, :, :] * hanning
+        data_sym[exp][i*60:i*60+lsec] * hanning
         for i in range(5)
     ]))
     for exp in data_sym.keys()
@@ -68,7 +68,7 @@ sym_window: dict[str, np.ndarray] = dict(
 
 asy_window: dict[str, np.ndarray] = dict(
     (exp, np.array([
-        data_asy[exp][i*60:i*60+lsec, :, :] * hanning
+        data_asy[exp][i*60:i*60+lsec] * hanning
         for i in range(5)
     ]))
     for exp in data_asy.keys()
@@ -80,19 +80,19 @@ def power_spec(
         data: np.ndarray,
 ) -> np.ndarray:
     fft: np.ndarray = np.fft.fft(data, axis=1);
-    fft: np.ndarray = np.fft.ifft(fft, axis=3) * data.shape[3];
+    fft: np.ndarray = np.fft.ifft(fft, axis=4) * data.shape[4];
 
-    ps : np.ndarray = (fft * fft.conj()) / (data.shape[1] * data.shape[3]) * 2;
+    ps : np.ndarray = (fft * fft.conj()) / (data.shape[1] * data.shape[4]) * 2;
 
     return ps.mean(axis=0).real;
 
 sym_ps: dict[str, np.ndarray] = dict(
-    (exp, power_spec(sym_window[exp]))
+    (exp, power_spec(sym_window[exp]).sum(axis=(2)))
     for exp in data.keys()
 );
 
 asy_ps: dict[str, np.ndarray] = dict(
-    (exp, power_spec(asy_window[exp]))
+    (exp, power_spec(asy_window[exp]).sum(axis=2))
     for exp in data.keys()
 );
 
@@ -139,6 +139,9 @@ def background(data, nsmooth=20):
 bg: np.ndarray = background(
     (sym_ps_weight["cntl"] + asy_ps_weight["cntl"])/2
 );
+
+print(bg.sum(),np.sum((sym_ps_weight["cntl"] + asy_ps_weight["cntl"])/2
+) );
 
 sym_peak: dict[str, np.ndarray] = dict(
     (exp, sym_ps_weight[exp] / bg)
@@ -212,3 +215,88 @@ cbar = plt.colorbar(ncrf_ps, ax=ax, orientation="horizontal", aspect=40, shrink=
 cbar.set_label("Normalized Power", fontsize=14);
 
 plt.savefig("/home/b11209013/Bachelor_Thesis/Major/Figure/Figure04.png", dpi=300);
+plt.show();
+
+# %% Section 5
+# Sum variance associated with the CCKWs
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 7), sharey=True);
+plt.subplots_adjust(left=0.08, right=0.96, bottom=0.03, top=0.9);
+cntl_ps = ax[0].contourf(
+    wn, fr[fr>0],
+    np.log(np.fft.fftshift(sym_ps_weight["cntl"])[fr>0]),
+    cmap="Blues",
+    levels=np.arange(5., 12.6, 0.5),
+    extend="both",
+);
+for i in range(3):
+    ax[0].plot(wn_ana[3, i, e_cond], fr_ana[3, i, e_cond], color="black", linewidth=1);
+    ax[0].plot(wn_ana[4, i], fr_ana[4, i], color="black", linewidth=1);
+    ax[0].plot(wn_ana[3, i], fr_ana[5, i], color="black", linewidth=1);
+ax[0].set_xticks(np.linspace(-14, 14, 8, dtype=int));
+ax[0].set_yticks(np.linspace(0, 0.5, 6));
+ax[0].axvline(0, linestyle="--", color="black")
+ax[0].axhline(1/3 , linestyle="--", color="black");
+ax[0].axhline(1/8 , linestyle="--", color="black");
+ax[0].axhline(1/20, linestyle="--", color="black");
+ax[0].text(15, 1/3 , "3 Days", ha="right", va="bottom");
+ax[0].text(15, 1/8 , "8 Days", ha="right", va="bottom");
+ax[0].text(15, 1/20, "20 Days", ha="right", va="bottom");
+ax[0].text(0, -0.06, "Zonal Wavenumber", ha="center", fontsize=14);
+ax[0].text(-20, 0.25, "Freqquency [CPD]", va="center", rotation=90, fontsize=14);
+ax[0].set_xlim(-15, 15);
+ax[0].set_ylim(0, 1/2);
+ax[0].text(0, 0.52, "CNTL", ha="center", fontsize=16)
+
+
+
+ncrf_ps = ax[1].contourf(
+    wn, fr[fr>0],
+    np.log(np.fft.fftshift(sym_ps_weight["ncrf"])[fr>0]),
+    cmap="Blues",
+    levels=np.arange(5, 12.6, 0.5),
+    extend="both",
+);
+for i in range(3):
+    ax[1].plot(wn_ana[3, i, e_cond], fr_ana[3, i, e_cond], color="black", linewidth=1);
+    ax[1].plot(wn_ana[4, i], fr_ana[4, i], color="black", linewidth=1);
+    ax[1].plot(wn_ana[3, i], fr_ana[5, i], color="black", linewidth=1);
+ax[1].set_xticks(np.linspace(-14, 14, 8, dtype=int));
+ax[1].set_yticks(np.linspace(0, 0.5, 6));
+ax[1].axvline(0, linestyle="--", color="black")
+ax[1].axhline(1/3 , linestyle="--", color="black");
+ax[1].axhline(1/8 , linestyle="--", color="black");
+ax[1].axhline(1/20, linestyle="--", color="black");
+ax[1].text(15, 1/3 , "3 Days", ha="right", va="bottom");
+ax[1].text(15, 1/8 , "8 Days", ha="right", va="bottom");
+ax[1].text(15, 1/20, "20 Days", ha="right", va="bottom");
+ax[1].text(0, -0.06, "Zonal Wavenumber", ha="center", fontsize=14);
+ax[1].set_xlim(-15, 15);
+ax[1].set_ylim(0, 1/2);
+ax[1].text(0, 0.52, "NCRF", ha="center", fontsize=16)
+
+cbar = plt.colorbar(ncrf_ps, ax=ax, orientation="horizontal", aspect=40, shrink=0.7)
+cbar.set_label("Normalized Power", fontsize=14);
+
+plt.show();
+
+# # Kelvin waves
+wnm, frm = np.meshgrid(wn, fr[fr>0]);
+
+kelvin = lambda wn, eq: wn * np.sqrt(9.81*eq) * 86400 / (2*np.pi*6.371e6);
+
+kelvin_cond: tuple[int] = np.where(
+    (wnm >= 1) & (wnm <= 14) &
+    (frm >= 1/20) & (frm <= 1/2.5) & 
+    (frm <= kelvin(wnm, 90)) & (frm >= kelvin(wnm, 8)),
+    1, 0
+);
+
+plt.contourf(wn, fr[fr>0], kelvin_cond * sym_ps_weight["ncrf"][fr>0], cmap="binary");
+plt.xlim(-15, 15);
+plt.ylim(0, 1/2)
+plt.colorbar();
+cntl_var = np.nansum(kelvin_cond * (sym_ps_weight["cntl"])[fr>0]);
+ncrf_var = np.nansum(kelvin_cond * (sym_ps_weight["ncrf"])[fr>0]);
+print("CNTL variance sum: ", cntl_var);
+print("NCRF variance sum: ", ncrf_var);
